@@ -151,7 +151,7 @@ class MessageBroker {
   friend class MessageBrokerTestHelper;
 
  public:
-  using RequestHandler = std::function<exec::task<ByteBuffer>(ByteBuffer)>;
+  using RequestHandler = std::function<stdexec::task<ByteBuffer>(ByteBuffer)>;
 
   explicit MessageBroker(uint64_t this_node_id, ClusterConfig cluster_config);
   ~MessageBroker();
@@ -170,20 +170,20 @@ class MessageBroker {
   /**
    * @brief Stop the RecvSocketPuller and PeriodicalTaskScheduler, then wait for all in-flight tasks to complete.
    */
-  exec::task<void> Stop();
+  stdexec::task<void> Stop();
 
   /** @copydoc ex_actor::WaitClusterState */
-  exec::task<WaitClusterStateResult> WaitClusterState(std::function<bool(const ClusterState&)> predicate,
-                                                      uint64_t timeout_ms);
+  stdexec::task<WaitClusterStateResult> WaitClusterState(std::function<bool(const ClusterState&)> predicate,
+                                                         uint64_t timeout_ms);
 
   /**
    * @brief Send buffer to the remote node and get a response.
    * @return A task containing raw response buffer.
    */
-  exec::task<ByteBuffer> SendRequest(uint64_t to_node_id, ByteBuffer data);
+  stdexec::task<ByteBuffer> SendRequest(uint64_t to_node_id, ByteBuffer data);
 
   // Called by RecvSocketPuller
-  exec::task<void> DispatchReceivedMessage(ByteBuffer raw);
+  stdexec::task<void> DispatchReceivedMessage(ByteBuffer raw);
 
   // ------------- periodical tasks scheduled in PeriodicalTaskScheduler -------------
   void BroadcastGossip();
@@ -197,7 +197,7 @@ class MessageBroker {
   std::vector<uint64_t> GetRandomPeers(size_t fanout);
 
   void HandleRepliedResponse(BrokerTwoWayMessage response_msg);
-  exec::task<void> HandleIncomingRequest(BrokerTwoWayMessage request_msg);
+  stdexec::task<void> HandleIncomingRequest(BrokerTwoWayMessage request_msg);
   void HandleGossipMessage(const BrokerGossipMessage& gossip_message);
 
   void OnNodeAlive(uint64_t node_id);

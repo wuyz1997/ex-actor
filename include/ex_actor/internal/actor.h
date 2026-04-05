@@ -40,7 +40,7 @@ class TypeErasedActor {
   explicit TypeErasedActor(ActorConfig actor_config) : actor_config_(std::move(actor_config)) {}
   virtual ~TypeErasedActor() = default;
   virtual void PushMessage(ActorMessage* task) = 0;
-  virtual exec::task<void> AsyncDestroy() = 0;
+  virtual stdexec::task<void> AsyncDestroy() = 0;
 
   template <auto kMethod, class... Args>
   ex::sender auto CallActorMethod(Args... args);
@@ -124,9 +124,10 @@ struct StdExecSchedulerForActorMessageSubmission : public ex::scheduler_t {
     }
   };
 
-  struct ActorMessageSubmissionSender : ex::sender_t {
+  struct ActorMessageSubmissionSender : ex::sender_t, StoppableSchedulerCompletionSignatures {
+    using StoppableSchedulerCompletionSignatures::get_completion_signatures;
     TypeErasedActor* actor;
-    using completion_signatures = ex::completion_signatures<ex::set_value_t(), ex::set_stopped_t()>;
+
     struct Env {
       TypeErasedActor* actor;
       template <class CPO>
@@ -184,7 +185,7 @@ class Actor : public TypeErasedActor {
   ~Actor() override = default;
 
   /// Async destroy the actor, if there are still messages in the mailbox, they might not be processed.
-  exec::task<void> AsyncDestroy() override {
+  stdexec::task<void> AsyncDestroy() override {
     bool expected = false;
     bool changed = pending_to_be_destroyed_.compare_exchange_strong(expected, /*desired=*/true,
                                                                     /*success=*/std::memory_order_release,

@@ -32,7 +32,7 @@ class PingWorker {
 // the rest are methods you want to call remotely.
 EXA_REMOTE(&PingWorker::Create, &PingWorker::Ping); // (1)
 
-exec::task<void> MainCoroutine(int argc, char** argv) {
+stdexec::task<void> MainCoroutine(int argc, char** argv) {
   std::string listen_address = argv[1];
   std::string contact_address = (argc > 2) ? argv[2] : "";
   // 2. Init the framework, then start or join a cluster.

@@ -295,9 +295,13 @@ inline void SetThreadName(const std::string& name) { pthread_setname_np(pthread_
 inline void SetThreadName(const std::string&) {}
 #endif
 
-inline auto WrapSenderWithInlineScheduler(auto task) {
-  return std::move(task) | stdexec::write_env(ex::prop {stdexec::get_scheduler, stdexec::inline_scheduler {}});
-}
+struct InlineSchedulerEnv {
+  using scheduler_type = ex::inline_scheduler;
+  auto query(ex::get_scheduler_t) { return ex::inline_scheduler {}; }
+};
+
+template <class T>
+using InlineTask = stdexec::task<T, InlineSchedulerEnv>;
 
 template <typename Map, typename Key>
 auto& MapAt(Map& map, const Key& key, std::source_location loc = std::source_location::current()) {
@@ -308,6 +312,25 @@ auto& MapAt(Map& map, const Key& key, std::source_location loc = std::source_loc
   }
   return it->second;
 }
+// Mixin that provides environment-adaptive completion signatures for scheduler senders.
+// When the environment has a never_stop_token, advertises only set_value_t(); otherwise
+// also advertises set_stopped_t().
+struct StoppableSchedulerCompletionSignatures {
+  template <class Self>
+  static consteval auto get_completion_signatures() {
+    return ex::completion_signatures<ex::set_value_t(), ex::set_stopped_t()>();
+  }
+
+  template <class Self, class Env>
+  static consteval auto get_completion_signatures() {
+    if constexpr (ex::unstoppable_token<stdexec::stop_token_of_t<Env>>) {
+      return ex::completion_signatures<ex::set_value_t()>();
+    } else {
+      return ex::completion_signatures<ex::set_value_t(), ex::set_stopped_t()>();
+    }
+  }
+};
+
 }  // namespace ex_actor::internal
 
 // Backward-compatibility alias — this namespace was removed in favor of ex_actor.

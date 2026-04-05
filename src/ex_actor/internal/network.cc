@@ -181,7 +181,7 @@ void MessageBroker::Start(RequestHandler request_handler) {
   StartPeriodicalTaskScheduler();
 }
 
-exec::task<void> MessageBroker::Stop() {
+stdexec::task<void> MessageBroker::Stop() {
   log::Info("Node {:#x} stopping message broker", this_node_id_);
   if (periodical_task_scheduler_ != nullptr) {
     periodical_task_scheduler_->Stop();
@@ -195,7 +195,7 @@ exec::task<void> MessageBroker::Stop() {
   stopped_ = true;
 }
 
-exec::task<void> MessageBroker::DispatchReceivedMessage(ByteBuffer raw) {
+stdexec::task<void> MessageBroker::DispatchReceivedMessage(ByteBuffer raw) {
   auto broker_msg = Deserialize<BrokerMessage>(raw);
 
   if (auto* gossip = std::get_if<BrokerGossipMessage>(&broker_msg.variant)) {
@@ -212,7 +212,7 @@ exec::task<void> MessageBroker::DispatchReceivedMessage(ByteBuffer raw) {
   }
 }
 
-exec::task<ByteBuffer> MessageBroker::SendRequest(uint64_t to_node_id, ByteBuffer data) {
+stdexec::task<ByteBuffer> MessageBroker::SendRequest(uint64_t to_node_id, ByteBuffer data) {
   EXA_THROW_CHECK_NE(to_node_id, this_node_id_) << "Cannot send message to current node";
   uint64_t request_id = SendTwoWayMessage(to_node_id, std::move(data));
   auto [iter, inserted] = outstanding_requests_.try_emplace(request_id);
@@ -232,8 +232,8 @@ exec::task<ByteBuffer> MessageBroker::SendRequest(uint64_t to_node_id, ByteBuffe
   co_return std::move(response_bytes);
 }
 
-exec::task<WaitClusterStateResult> MessageBroker::WaitClusterState(std::function<bool(const ClusterState&)> predicate,
-                                                                   uint64_t timeout_ms) {
+stdexec::task<WaitClusterStateResult> MessageBroker::WaitClusterState(
+    std::function<bool(const ClusterState&)> predicate, uint64_t timeout_ms) {
   ClusterState state {.nodes = BuildAliveNodeInfoList()};
   if (predicate(state)) {
     co_return WaitClusterStateResult {.cluster_state = std::move(state), .condition_met = true};
@@ -380,7 +380,7 @@ void MessageBroker::HandleRepliedResponse(BrokerTwoWayMessage response_msg) {
   pending.sem.Acquire(1);
 }
 
-exec::task<void> MessageBroker::HandleIncomingRequest(BrokerTwoWayMessage request_msg) {
+stdexec::task<void> MessageBroker::HandleIncomingRequest(BrokerTwoWayMessage request_msg) {
   EXA_THROW_CHECK(request_handler_ != nullptr) << "Request handler not set";
   ByteBuffer reply_data = co_await request_handler_(std::move(request_msg.payload));
   SendReply(request_msg.request_node_id, request_msg.request_id, std::move(reply_data));

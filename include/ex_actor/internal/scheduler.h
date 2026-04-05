@@ -78,9 +78,10 @@ class WorkSharingThreadPoolBase {
 
   struct Scheduler;
 
-  struct Sender : ex::sender_t {
-    using completion_signatures = ex::completion_signatures<ex::set_value_t(), ex::set_stopped_t()>;
+  struct Sender : ex::sender_t, internal::StoppableSchedulerCompletionSignatures {
+    using internal::StoppableSchedulerCompletionSignatures::get_completion_signatures;
     WorkSharingThreadPoolBase* thread_pool;
+
     struct Env {
       WorkSharingThreadPoolBase* thread_pool;
       template <class CPO>
@@ -163,9 +164,10 @@ class SchedulerUnion {
     }
   };
 
-  struct Sender : ex::sender_t {
-    using completion_signatures = ex::completion_signatures<ex::set_value_t(), ex::set_stopped_t()>;
+  struct Sender : ex::sender_t, internal::StoppableSchedulerCompletionSignatures {
+    using internal::StoppableSchedulerCompletionSignatures::get_completion_signatures;
     SchedulerUnion* scheduler_union;
+
     struct Env {
       SchedulerUnion* scheduler_union;
       template <class CPO>

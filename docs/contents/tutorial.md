@@ -28,7 +28,7 @@ struct Counter {
   int count = 0;
 };
 
-exec::task<void> MainCoroutine() {
+stdexec::task<void> MainCoroutine() {
   /*
   1. First, initialize ex_actor runtime.
   */
@@ -100,7 +100,7 @@ public:
 class Father {
 public:
   // Actor's method can be a coroutine.
-  exec::task<std::string> SpawnChildAndPing() {
+  stdexec::task<std::string> SpawnChildAndPing() {
     if (child_.IsEmpty()) {
       // this line won't block the scheduler thread
       child_ = co_await ex_actor::Spawn<Child>();
@@ -114,7 +114,7 @@ private:
   ex_actor::ActorRef<Child> child_;
 };
 
-exec::task<void> MainCoroutine() {
+stdexec::task<void> MainCoroutine() {
   // Here we have only one thread in scheduler, but it still can finish the entire work,
   // because we use coroutine, there is no blocking wait in actor's method.
   ex_actor::Init(/*thread_pool_size=*/1);
@@ -152,7 +152,7 @@ class Proxy {
   explicit Proxy(ex_actor::ActorRef<PingWorker> actor_ref) : actor_ref_(actor_ref) {}
 
   // Actor's method can be a coroutine.
-  exec::task<std::string> ProxyPing() {
+  stdexec::task<std::string> ProxyPing() {
     // This line won't block the scheduler thread.
     std::string ping_res = co_await actor_ref_.template Send<&PingWorker::Ping>();
     co_return ping_res + " from Proxy";
@@ -163,7 +163,7 @@ class Proxy {
 };
 
 
-exec::task<void> MainCoroutine() {
+stdexec::task<void> MainCoroutine() {
   ex_actor::Init(/*thread_pool_size=*/1);
 
   ex_actor::ActorRef ping_worker = co_await ex_actor::Spawn<PingWorker>();
@@ -198,7 +198,7 @@ struct Counter {
   int count = 0;
 };
 
-exec::task<void> MainCoroutine() {
+stdexec::task<void> MainCoroutine() {
   ex_actor::Init(/*thread_pool_size=*/1);
   ex_actor::ActorRef actor = co_await ex_actor::Spawn<Counter>();
   exec::async_scope scope;
@@ -249,7 +249,7 @@ struct Counter {
   int count = 0;
 };
 
-exec::task<void> MainCoroutine() {
+stdexec::task<void> MainCoroutine() {
   ex_actor::Init(/*thread_pool_size=*/3);
 
   // create multiple counters, you want to increase them in parallel
@@ -387,7 +387,7 @@ class Proxy {
   ex_actor::ActorRef<DummyActor> actor_ref_;
 };
 
-exec::task<void> MainCoroutine() {
+stdexec::task<void> MainCoroutine() {
   ex_actor::Init(/*thread_pool_size=*/2);
   ex_actor::ActorRef dummy_actor = co_await ex_actor::Spawn<DummyActor>();
 

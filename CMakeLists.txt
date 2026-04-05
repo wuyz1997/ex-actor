@@ -21,9 +21,10 @@ endif()
 CPMAddPackage(
   NAME stdexec
   GITHUB_REPOSITORY NVIDIA/stdexec
-  GIT_TAG 770f7959142c2446319f642c82aed8b07aea3f86
+  GIT_TAG 5473e9daf50cb8829cfe12fb6b64f5f74a08bcf7
   OPTIONS "BUILD_TESTING OFF"
   OPTIONS "STDEXEC_BUILD_EXAMPLES OFF"
+  OPTIONS "STDEXEC_INSTALL ON"
 )
 
 # reflect-cpp with Cap'n Proto for actor message serialization

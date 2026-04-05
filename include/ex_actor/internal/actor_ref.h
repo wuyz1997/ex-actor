@@ -87,33 +87,7 @@ class ActorRef : public LocalActorRef<UserClass> {
    */
   template <auto kMethod, class... Args>
   [[nodiscard]] auto Send(Args... args) const
-    requires(std::is_invocable_v<decltype(kMethod), UserClass*, Args...>)
-  {
-    // Add a fallback inline_scheduler for it.
-    return WrapSenderWithInlineScheduler(SendInternal<kMethod>(std::move(args)...));
-  }
-
-  /**
-   * @brief Send message to a local actor. Has better performance than the generic Send(). No heap allocation.
-   */
-  template <auto kMethod, class... Args>
-  [[nodiscard]] ex::sender auto SendLocal(Args... args) const
-    requires(std::is_invocable_v<decltype(kMethod), UserClass*, Args...>)
-  {
-    EXA_THROW_CHECK_EQ(node_id_, this_node_id_) << "Cannot call remote actor using SendLocal, use Send instead.";
-    return LocalActorRef<UserClass>::template SendLocal<kMethod>(std::move(args)...);
-  }
-
-  uint64_t GetNodeId() const { return node_id_; }
-
- private:
-  uint64_t this_node_id_ = 0;
-  uint64_t node_id_ = 0;
-  LocalActorRef<MessageBroker> broker_actor_ref_;
-
-  template <auto kMethod, class... Args>
-  [[nodiscard]] auto SendInternal(Args... args) const
-      -> exec::task<typename decltype(UnwrapReturnSenderIfNested<kMethod>())::type>
+      -> InlineTask<typename decltype(UnwrapReturnSenderIfNested<kMethod>())::type>
     requires(std::is_invocable_v<decltype(kMethod), UserClass*, Args...>)
   {
     if (this->IsEmpty()) [[unlikely]] {
@@ -151,6 +125,24 @@ class ActorRef : public LocalActorRef<UserClass> {
       co_return res.return_value;
     }
   }
+
+  /**
+   * @brief Send message to a local actor. Has better performance than the generic Send(). No heap allocation.
+   */
+  template <auto kMethod, class... Args>
+  [[nodiscard]] ex::sender auto SendLocal(Args... args) const
+    requires(std::is_invocable_v<decltype(kMethod), UserClass*, Args...>)
+  {
+    EXA_THROW_CHECK_EQ(node_id_, this_node_id_) << "Cannot call remote actor using SendLocal, use Send instead.";
+    return LocalActorRef<UserClass>::template SendLocal<kMethod>(std::move(args)...);
+  }
+
+  uint64_t GetNodeId() const { return node_id_; }
+
+ private:
+  uint64_t this_node_id_ = 0;
+  uint64_t node_id_ = 0;
+  LocalActorRef<MessageBroker> broker_actor_ref_;
 };
 
 template <class UserClass>

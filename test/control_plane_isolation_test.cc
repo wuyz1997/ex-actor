@@ -31,7 +31,7 @@ TEST(ControlPlaneIsolationTest, HeartbeatSurvivesWhenAllWorkerThreadsBusy) {
 
   std::barrier bar {2};
 
-  auto node_main = [&](size_t index) -> exec::task<void> {
+  auto node_main = [&](size_t index) -> stdexec::task<void> {
     std::vector<std::string> addresses = {"tcp://127.0.0.1:5401", "tcp://127.0.0.1:5402"};
     ex_actor::ClusterConfig cluster_config {
         .listen_address = addresses.at(index),

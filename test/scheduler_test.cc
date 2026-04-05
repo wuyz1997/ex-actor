@@ -86,7 +86,7 @@ TEST(SchedulerTest, SchedulerUnionTest) {
   auto [thread_id2] = ex::sync_wait(sender2).value();
   ASSERT_NE(thread_id1, thread_id2);
 
-  auto coroutine = [&]() -> exec::task<void> {
+  auto coroutine = [&]() -> stdexec::task<void> {
     // create two actors, specify the scheduler index in ActorConfig.
     auto actor1 = co_await ex_actor::Spawn<TestActor2>().WithConfig({.scheduler_index = 0});
     auto actor2 = co_await ex_actor::Spawn<TestActor2>().WithConfig({.scheduler_index = 1});
@@ -111,7 +111,7 @@ TEST(SchedulerTest, TestResourceHolder) {
   ex_actor::HoldResource(std::move(shared_pool1));
   ex_actor::HoldResource(std::move(shared_pool2));
   ex_actor::HoldResource(std::move(union_pool));
-  auto coroutine = [&]() -> exec::task<void> {
+  auto coroutine = [&]() -> stdexec::task<void> {
     // create two actors, specify the scheduler index in ActorConfig.
     auto actor1 = co_await ex_actor::Spawn<TestActor2>().WithConfig({.scheduler_index = 0});
     auto actor2 = co_await ex_actor::Spawn<TestActor2>().WithConfig({.scheduler_index = 1});

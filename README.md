@@ -46,7 +46,7 @@ struct Counter {
   int count = 0;
 };
 
-exec::task<void> MainCoroutine() {
+stdexec::task<void> MainCoroutine() {
   ex_actor::Init(/*thread_pool_size=*/1);
 
   // 1. Create the actor.
@@ -82,7 +82,7 @@ public:
 class Father {
 public:
   // actor's method can be a coroutine
-  exec::task<std::string> SpawnChildAndPing() {
+  stdexec::task<std::string> SpawnChildAndPing() {
     if (child_.IsEmpty()) {
       child_ = co_await ex_actor::Spawn<Child>();
     }
@@ -93,7 +93,7 @@ private:
   ex_actor::ActorRef<Child> child_;
 };
 
-exec::task<void> MainCoroutine() {
+stdexec::task<void> MainCoroutine() {
   // Here we have only one thread in scheduler, but it still can finish the entire work
   // because we use coroutine, there is no blocking wait in actor's method.
   ex_actor::Init(/*thread_pool_size=*/1);

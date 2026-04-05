@@ -102,7 +102,7 @@ CheckOptions:
   - { key: readability-identifier-naming.StructCase, value: CamelCase }
   - { key: readability-identifier-naming.StructIgnoredRegexp, value: "^get_.*_t$" }
   - { key: readability-identifier-naming.TypeAliasCase, value: CamelCase }
-  - { key: readability-identifier-naming.TypeAliasIgnoredRegexp, value: "^completion_signatures$" }
+  - { key: readability-identifier-naming.TypeAliasIgnoredRegexp, value: "^(completion_signatures|scheduler_type)$" }
   - { key: readability-identifier-naming.TypeTemplateParameterCase, value: CamelCase }
   - { key: readability-identifier-naming.ValueTemplateParameterCase, value: CamelCase }
   - { key: readability-identifier-naming.ValueTemplateParameterPrefix, value: k }
